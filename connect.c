@@ -1091,6 +1091,7 @@ enum ssh_variant {
 	VARIANT_PLINK,
 	VARIANT_PUTTY,
 	VARIANT_TORTOISEPLINK,
+	VARIANT_NONSTOPSSH,
 };
 
 static void override_ssh_variant(enum ssh_variant *ssh_variant)
@@ -1108,6 +1109,8 @@ static void override_ssh_variant(enum ssh_variant *ssh_variant)
 		*ssh_variant = VARIANT_PUTTY;
 	else if (!strcmp(variant, "tortoiseplink"))
 		*ssh_variant = VARIANT_TORTOISEPLINK;
+	else if (!strcmp(variant, "nonstopssh"))
+		*ssh_variant = VARIANT_NONSTOPSSH;
 	else if (!strcmp(variant, "simple"))
 		*ssh_variant = VARIANT_SIMPLE;
 	else
@@ -1156,6 +1159,8 @@ static enum ssh_variant determine_ssh_variant(const char *ssh_command,
 	else if (!strcasecmp(variant, "tortoiseplink") ||
 		 !strcasecmp(variant, "tortoiseplink.exe"))
 		ssh_variant = VARIANT_TORTOISEPLINK;
+	else if (!strcasecmp(variant, "sshoss"))
+		ssh_variant = VARIANT_NONSTOPSSH;
 
 	free(p);
 	return ssh_variant;
@@ -1275,6 +1280,7 @@ static void push_ssh_options(struct strvec *args, struct strvec *env,
 		case VARIANT_SIMPLE:
 			die(_("ssh variant 'simple' does not support setting port"));
 		case VARIANT_SSH:
+		case VARIANT_NONSTOPSSH:
 			strvec_push(args, "-p");
 			break;
 		case VARIANT_PLINK:
@@ -1284,6 +1290,17 @@ static void push_ssh_options(struct strvec *args, struct strvec *env,
 		}
 
 		strvec_push(args, port);
+	}
+
+	if (variant == VARIANT_NONSTOPSSH) {
+		if (!getenv("SSH_SUPPRESS_BANNER"))
+			strvec_push(args, "-Z");
+		if (!getenv("SSH_SUPPRESS_QUIET"))
+			strvec_push(args, "-Q");
+		if (getenv("SSH2_PROCESS_NAME")) {
+			strvec_push(args, "-S");
+			strvec_push(args, getenv("SSH2_PROCESS_NAME"));
+		}
 	}
 }
 
