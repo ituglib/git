@@ -11,7 +11,8 @@ ssh.variant::
 +
 The config variable `ssh.variant` can be set to override this detection.
 Valid values are `ssh` (to use OpenSSH options), `plink`, `putty`,
-`tortoiseplink`, `simple` (no options except the host and remote command).
+`tortoiseplink`, `simple` (no options except the host and remote command),
+`nonstopssh`.
 The default auto-detection can be explicitly requested using the value
 `auto`.  Any other value is treated as `ssh`.  This setting can also be
 overridden via the environment variable `GIT_SSH_VARIANT`.
@@ -29,7 +30,22 @@ follows:
 
 * `tortoiseplink` - [-P port] [-4] [-6] -batch [username@]host command
 
+* `nonstopssh` - [-p port] [-Z] [-Q] [-S ssh-process] [username@]host command
+
 --
 +
 Except for the `simple` variant, command-line parameters are likely to
 change as git gains new features.
+
+The `nonstopssh` variant is controlled using environment variables:
++
+--
+
+* SSH2_PROCESS_NAME defines the ssh-process to use for communications.
+
+* SSH_SUPPRESS_BANNER, if present, inhibits the -Z option.
+
+* SSH_SUPPRESS_QUIET, if present, inhibits the -Q option.
+--
++
+Consult the NonStop SSH manual for details on NonStop SSH options.
