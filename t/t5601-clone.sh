@@ -474,6 +474,40 @@ test_expect_success 'GIT_SSH_VARIANT overrides plink to tortoiseplink' '
 	expect_ssh "-batch -P 123" myhost src
 '
 
+test_expect_success 'nonstopssh base configuration' '
+	copy_ssh_wrapper_as "$TRASH_DIRECTORY/nonstopssh" &&
+	unset SSH2_PROCESS_NAME &&
+	GIT_SSH_VARIANT=nonstopssh \
+	git clone "[myhost:123]:src" ssh-bracket-clone-nonstopssh &&
+	expect_ssh "-p 123 -Z -Q" myhost src
+'
+
+test_expect_success 'nonstopssh suppress banner' '
+	copy_ssh_wrapper_as "$TRASH_DIRECTORY/nonstopssh" &&
+	unset SSH2_PROCESS_NAME &&
+	GIT_SSH_VARIANT=nonstopssh \
+	SSH_SUPPRESS_BANNER=1 \
+	git clone "[myhost:123]:src" ssh-bracket-clone-nonstopssh2 &&
+	expect_ssh "-p 123 -Q" myhost src
+'
+
+test_expect_success 'nonstopssh suppress quiet' '
+	copy_ssh_wrapper_as "$TRASH_DIRECTORY/nonstopssh" &&
+	unset SSH2_PROCESS_NAME &&
+	GIT_SSH_VARIANT=nonstopssh \
+	SSH_SUPPRESS_QUIET=1 \
+	git clone "[myhost:123]:src" ssh-bracket-clone-nonstopssh3 &&
+	expect_ssh "-p 123 -Z" myhost src
+'
+
+test_expect_success 'nonstopssh supply SSH process name' '
+	copy_ssh_wrapper_as "$TRASH_DIRECTORY/nonstopssh" &&
+	GIT_SSH_VARIANT=nonstopssh \
+	SSH2_PROCESS_NAME=\$ZSSH0 \
+	git clone "[myhost:123]:src" ssh-bracket-clone-nonstopssh4 &&
+	expect_ssh "-p 123 -Z -Q -S \$ZSSH0" myhost src
+'
+
 test_expect_success 'clean failure on broken quoting' '
 	test_must_fail \
 		env GIT_SSH_COMMAND="${SQ}plink.exe -v" \
